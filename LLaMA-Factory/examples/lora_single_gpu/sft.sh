@@ -1,14 +1,14 @@
 #!/bin/bash
 
-CUDA_VISIBLE_DEVICES=0 python ../../src/train_bash.py \
+CUDA_VISIBLE_DEVICES=0 python /data/home/zfyang/home/oishi/LLaMA-Factory/src/train_bash.py \
     --stage sft \
     --do_train \
     --model_name_or_path /data/home/zfyang/home/oishi/model/Baichuan2-7B-Base \
     --dataset theorem_alpaca \
-    --dataset_dir ../../data/theorem \
+    --dataset_dir /data/home/zfyang/home/oishi/LLaMA-Factory/data \
     --template default \
     --finetuning_type lora \
-    --lora_target q_proj,v_proj \
+    --lora_target W_pack \
     --output_dir /data/home/zfyang/home/oishi/model/Baichuan2-7B-Base-ft-v2 \
     --overwrite_cache \
     --overwrite_output_dir \
@@ -29,4 +29,4 @@ CUDA_VISIBLE_DEVICES=0 python ../../src/train_bash.py \
     --max_samples 3000 \
     --val_size 0.1 \
     --plot_loss \
-    --fp16
+    --bf16

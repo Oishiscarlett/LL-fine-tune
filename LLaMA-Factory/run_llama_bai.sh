@@ -3,7 +3,7 @@
 # 设置运行参数
 GPU=${GPU:-A100}
 GPUNUM=${GPUNUM:-1}
-JOBNAME=${JOBNAME:-LF-Baichuan}
+JOBNAME=${JOBNAME:-lf-Baichuan}
 
 # 写入文件
 echo "#!/bin/sh" > $JOBNAME.sh
@@ -17,7 +17,7 @@ fi
 echo "#BSUB -o $JOBNAME.out" >> $JOBNAME.sh
 echo "#BSUB -e $JOBNAME.err" >> $JOBNAME.sh
 echo "#BSUB -J $JOBNAME" >> $JOBNAME.sh
-echo "bash LLaMA-Factory\examples\lora_single_gpu\sft.sh $*" >> $JOBNAME.sh
+echo "bash examples/lora_single_gpu/sft.sh $*" >> $JOBNAME.sh
 
 
 # 运行

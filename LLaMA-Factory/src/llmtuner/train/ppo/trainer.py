@@ -128,7 +128,8 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
         loss_meter = AverageMeter()
         reward_meter = AverageMeter()
         self.log_callback.on_train_begin(self.args, self.state, self.control)
-
+        
+        # 显示进度条
         for step in tqdm(range(max_steps), disable=not self.is_local_process_zero()):
             try:
                 batch = next(dataiter)
@@ -159,6 +160,7 @@ class CustomPPOTrainer(PPOTrainer, Trainer):
             self.model.train()
 
             # Run PPO step
+            # 这里主要是更新参数的，step这个函数是trl这个包里面的，trl这个包主要使用于强化学习训练语言模型的
             stats = self.step(queries, responses, rewards)
             self.tokenizer.padding_side = "left"  # restore padding side
             loss_meter.update(float(stats["ppo/loss/total"]), n=len(rewards))

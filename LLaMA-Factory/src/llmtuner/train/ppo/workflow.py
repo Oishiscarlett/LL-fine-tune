@@ -39,6 +39,11 @@ def run_ppo(
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     # Create reference model and reward model
+    """
+        ref model 和 reward model
+        reward model 需要提前先训练好
+        RLHF中，ref是用RM初始化的
+    """
     ref_model = create_ref_model(model_args, finetuning_args, add_valuehead=True)
     reward_model = create_reward_model(model, model_args, finetuning_args)
 

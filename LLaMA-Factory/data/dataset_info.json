@@ -394,7 +394,8 @@
     "folder": "python"
   },
   "theorem_sharegpt": {
-    "script_url": "LLaMA-Factory\\data\\theorem\\train_sharegpt.json",
+    "script_url": "theorem",
+    "file_name": "train_sharegpt.json",
     "formatting": "sharegpt",
     "columns": {
       "messages": "conversations"
@@ -407,7 +408,8 @@
     }
   },
   "theorem_alpaca": {
-    "script_url": "LLaMA-Factory\\data\\theorem\\train_alpaca.json",
+    "script_url": "theorem",
+    "file_name": "train_alpaca.json",
     "columns": {
       "prompt": "instruction",
       "query": "input",

@@ -103,11 +103,12 @@ def create_reward_model(
     r"""
     Creates reward model for PPO training.
     """
+    # reward model 是通过api的方式传入的
     if finetuning_args.reward_model_type == "api":
         assert finetuning_args.reward_model.startswith("http"), "Please provide full url."
         logger.info("Use reward server {}".format(finetuning_args.reward_model))
         return finetuning_args.reward_model
-    elif finetuning_args.reward_model_type == "lora":
+    elif finetuning_args.reward_model_type == "lora": # reward model = 原有model基础上加上一个使用lora训练的适配器
         model.pretrained_model.load_adapter(finetuning_args.reward_model, "reward")
         for name, param in model.named_parameters():  # https://github.com/huggingface/peft/issues/1090
             if "default" in name:
@@ -124,7 +125,7 @@ def create_reward_model(
         )
         logger.info("Loaded adapter weights of reward model from {}".format(finetuning_args.reward_model))
         return None
-    else:
+    else: # 单独训练了一个reward model
         reward_model_args_dict = model_args.to_dict()
         reward_model_args_dict.update(
             dict(
