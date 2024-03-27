@@ -1,0 +1,26 @@
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+Xformers is not installed correctly. If you want to use memory_efficient_attention to accelerate training use the following command to install Xformers
+pip install xformers.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]/data/home/zfyang/environment/anaconda3/envs/Baichuan/lib/python3.11/site-packages/torch/_utils.py:776: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+Loading checkpoint shards:  50%|█████     | 1/2 [00:16<00:16, 16.89s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.04s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:25<00:00, 12.77s/it]
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+Xformers is not installed correctly. If you want to use memory_efficient_attention to accelerate training use the following command to install Xformers
+pip install xformers.
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]/data/home/zfyang/environment/anaconda3/envs/Baichuan/lib/python3.11/site-packages/torch/_utils.py:776: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+Loading checkpoint shards:  50%|█████     | 1/2 [01:41<01:41, 101.45s/it]Loading checkpoint shards: 100%|██████████| 2/2 [02:32<00:00, 71.60s/it] Loading checkpoint shards: 100%|██████████| 2/2 [02:32<00:00, 76.08s/it]
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.
+ERROR: ld.so: object '/lib64/libcolord-gtk.so' from LD_PRELOAD cannot be preloaded: ignored.

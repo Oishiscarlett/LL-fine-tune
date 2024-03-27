@@ -209,8 +209,27 @@ class PPOPeftTrainer(Trainer):
         return lr_scheduler
 
     """oishi
+    掩码和使用-100来忽略某些目标：
+    1. 掩码通常是和数据形状相同的张量，其中的数据是0和1
+        0对应忽略数据，1对应有效数据；
+    2. 掩码使用更加灵活，可以在各种计算中使用，如平均值、方差计算
+    3. -100大多用于监督学习，在计算损失的时候，标记为-100的数据通常会被忽略
     
-    
+    这里3个与掩码相关的函数分别是在计算有效值的平均值、有效值的方差以及对有效数据进行白化
+
+    白化：即将数据标准化为具有零均值和单位方差的形式
+
+    dim是维度：
+    [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+    ]
+    如果我们指定dim=0（有时也称为轴0），这意味着操作会沿着数组的第一个维度进行，即沿着行的方向。
+    在上面的矩阵中，如果我们要计算每一列的和，我们会沿着dim=0方向进行，结果会是[12, 15, 18]（即1+4+7, 2+5+8, 3+6+9）。
+    如果我们指定dim=1（有时也称为轴1），这意味着操作会沿着数组的第二个维度进行，即沿着列的方向。
+    在同一个矩阵中，如果我们要计算每一行的和，我们会沿着dim=1方向进行，结果会是[6, 15, 24]（即1+2+3, 4+5+6, 7+8+9）。
+
     """
     def masked_mean(self, data, mask, dim=None, eps=1e-8):
         data = data * mask
@@ -235,7 +254,16 @@ class PPOPeftTrainer(Trainer):
             whitened += mean
         return whitened
 
+    """oishi
+    这个unwrap_model函数的作用是递归地将模型从其可能的容器中解包
 
+    在分布式训练中，模型可能被装在类似torch.nn.DataParallel、
+    torch.nn.parallel.DistributedDataParallel的容器中，来支持GPU或其他分布式设置，
+    此时访问模型需要使用model.module
+
+    unwrap_model函数的作用就是将模型从容器中解包。它会检查传入的模型是否有module属性，
+    如果有就递归调用，直到没有（找到初始模型）。
+    """
     def unwrap_model(self, model: nn.Module) -> nn.Module:
         """
         Recursively unwraps a model from potential containers (as used in distributed training).
@@ -294,7 +322,12 @@ class PPOPeftTrainer(Trainer):
         
         return sequences
 
+    """oishi
+    加工处理一批（batch）seq
 
+    去除prompts responses中的padding
+
+    """
     def process_sequences(self, prompts_ids, responses_ids):
         # seq: [0 0 0 0, prompt, response, 0 0 0 0] change to [prompt, response, 0 0 0 0]
         
@@ -303,7 +336,7 @@ class PPOPeftTrainer(Trainer):
         for i in range(batch_size):
             response = responses_ids[i]
             prompt = prompts_ids[i] 
-            prompt_left_padding_length = (prompt == self.tokenizer.pad_token_id).sum().item()
+            prompt_left_padding_length = (prompt == self.tokenizer.pad_token_id).sum().item() #oishi：sum的结果是一个张量，item用于从单元素的张量中提取数值，转换成py数据类型
             response_length = (response != self.tokenizer.pad_token_id).sum().item()
             prompt_without_padding = prompt[prompt_left_padding_length:]
             response_without_padding = response[:response_length]
@@ -330,6 +363,7 @@ class PPOPeftTrainer(Trainer):
         reward_score = []
         for i in range(batch_size):
             value = values[i]
+            #oishi: nonzero() 返回的是非零元素的索引，[-1]取最后一个，detach()从图中分离出该张量（产生一个副本），不影响后续
             end_index = responses_mask[i].nonzero()[-1].detach().item()
             reward_score.append(value[end_index])
         
@@ -406,8 +440,8 @@ class PPOPeftTrainer(Trainer):
         responses_mask = []
         for i in range(batch_size):
             prompt = prompts_without_padding[i]
-            response_mask = torch.zeros_like(sequences_mask[i])
-            response_mask[len(prompt):] = sequences_mask[i][len(prompt):]
+            response_mask = torch.zeros_like(sequences_mask[i]) #创建相同形状的全0张量
+            response_mask[len(prompt):] = sequences_mask[i][len(prompt):] # 提示部分保留为0，其他用sequences_mask赋值
             responses_mask.append(response_mask)
         return torch.stack(responses_mask)
 
@@ -488,7 +522,9 @@ class PPOPeftTrainer(Trainer):
         else:
             actor_logits, critic_values, ref_logits, ref_values = self.get_model_output(sequences)
         
-        
+        """oishi
+        优化问题中，最大化对数概率，最小化损失（所以有负号）
+        """
         actor_log_probs = self.get_log_probs(actor_logits[:, :-1, :], sequences["input_ids"][:, 1:]) 
         actor_ce_loss = -self.masked_mean(actor_log_probs, sequences["attention_mask"][:, 1:], dim=-1)
 
@@ -549,7 +585,8 @@ class PPOPeftTrainer(Trainer):
         
     def actor_loss(self, actor_log_probs, mini_batch_actor_log_probs, advantages, mask):
         
-        ratio = torch.exp((mini_batch_actor_log_probs - actor_log_probs) * mask)
+        # oishi: 重要性采样 因为输入的是对数概率，所以还要进行指数计算
+        ratio = torch.exp((mini_batch_actor_log_probs - actor_log_probs) * mask) 
         loss1 = -advantages * ratio
         loss2 = -advantages * torch.clamp(ratio, 1.0 - self.args.ratio_clip,
                                              1.0 + self.args.ratio_clip)
@@ -560,6 +597,8 @@ class PPOPeftTrainer(Trainer):
 
     def critic_loss(self, critic_values, mini_batch_critic_values, returns, mask):
         
+        # 值剪裁 mini_batch_critic_values是更新后的value
+        # critic_values是更新前的value
         critic_values_clip = torch.clamp(
             mini_batch_critic_values,
             critic_values - self.args.value_clip,
@@ -571,7 +610,8 @@ class PPOPeftTrainer(Trainer):
         
         return loss, values_error 
     
-
+    # 组合预训练模型的参数和value head的参数
+    # value head的参数以v_head.的形式加入pretrained_model_state_dict
     def get_state_dict(self, model):
         pretrained_model_state_dict = model.pretrained_model.state_dict()
         v_head_state_dict = model.v_head.state_dict()
@@ -595,6 +635,7 @@ class PPOPeftTrainer(Trainer):
             else:
                 state_dict = model.state_dict()
 
+        # 保存模型
         if isinstance(model, PreTrainedModel):  
             model.save_pretrained(output_dir, state_dict=state_dict)
         else:
@@ -611,6 +652,7 @@ class PPOPeftTrainer(Trainer):
                     adapter_state_dict[f"v_head.{k}"] = v 
             torch.save(adapter_state_dict, os.path.join(output_dir, WEIGHTS_NAME))
                 
+        # 保存peft config
         try:
             if hasattr(model, "peft_config"):
                 model.peft_config.save_pretrained(output_dir)
@@ -623,10 +665,11 @@ class PPOPeftTrainer(Trainer):
             else:
                 model.pretrained_model.peft_config[adapter_name].save_pretrained(output_dir)
 
-
+        # 保存tokenizer
         if self.tokenizer is not None:
             self.tokenizer.save_pretrained(output_dir)
-
+        
+        # 保存训练参数
         torch.save(self.args, os.path.join(output_dir, TRAINING_ARGS_NAME))
 
     
@@ -715,7 +758,7 @@ class PPOPeftTrainer(Trainer):
     
     
     def train_step(self, batch_mini_data, extra_inputs, step):
-        
+        # oishi: 参数处理和损失权重调整
         extra_loss_weight_warmup = self.args.extra_loss_weight
         if self.args.extra_warmup_steps_ratio is not None:
             extra_warmup_steps = int(self.args.extra_warmup_steps_ratio * self.max_steps)
@@ -726,10 +769,11 @@ class PPOPeftTrainer(Trainer):
             else:
                 extra_loss_weight_warmup = extra_loss_weight_warmup ** 1.001 
 
-
+        # oishi：准备训练数据和额外输入的处理
         responses_mask = batch_mini_data["responses_mask"]
         sequences = {"input_ids": batch_mini_data["sequences_ids"], "attention_mask": batch_mini_data["sequences_mask"]}
 
+        # oishi：前向传播
         if self.args.use_co_model:
             with self.accelerator.accumulate(self.co_model):
                 unwrap_model = self.accelerator.unwrap_model(self.co_model)
@@ -744,7 +788,7 @@ class PPOPeftTrainer(Trainer):
             with self.accelerator.accumulate(self.model):
                 mini_batch_actor_logits, mini_batch_critic_values, extra_loss = self.model(sequences, extra_inputs)
             
-                
+        # oishi：损失计算
         mini_batch_actor_log_probs = self.get_log_probs(mini_batch_actor_logits[:, :-1, :], batch_mini_data["sequences_ids"][:, 1:]) 
         entropy = self.get_entropy(mini_batch_actor_logits[:, :-1, :], responses_mask[:, 1:])
         
@@ -758,7 +802,8 @@ class PPOPeftTrainer(Trainer):
         else:
             loss = self.args.actor_loss_weight * actor_loss + self.args.entropy_beta * entropy + self.args.critic_loss_weight * critic_loss
         
-        self.accelerator.backward(loss)
+        # oishi：反向传播和更新参数
+        self.accelerator.backward(loss) # oishi：计算loss
         
         if self.args.max_grad_norm is not None:
             if self.args.use_co_model:
@@ -771,7 +816,7 @@ class PPOPeftTrainer(Trainer):
                 max_norm=self.args.max_grad_norm
             )
         
-        self.optimizer.step()
+        self.optimizer.step() #oishi：这一步更新参数
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
         self.optimizer.zero_grad()
@@ -799,7 +844,10 @@ class PPOPeftTrainer(Trainer):
         else:
             extra_data_num_examples = 0 
         
+        # oishi：最大更新步骤；如果设置了那么不管epoch是多少，只要达到了，就停止训练
         if self.args.max_steps > 0:
+            # oishi：如果设置了最大更新步，就根据最大更新步来挑战模型训练的epoch
+            # // 是整除；如果有余数就额外加1
             self.num_train_epochs = self.args.max_steps // self.num_update_steps_per_epoch + int(
                 self.args.max_steps % self.num_update_steps_per_epoch > 0
             )
@@ -823,25 +871,31 @@ class PPOPeftTrainer(Trainer):
         step = 0 
         data_buffer = list()
         all_logs = list()
+
+        # 按照epoch训练
         for epoch in range(int(self.num_train_epochs)):
             if self.extra_train_dataloader is None:
                 self.extra_train_dataloader = [None] * len(self.dataloader)
             
+            # 取到每个batch的数据
             for i, (batch_data, batch_extra_data) in enumerate(zip(self.dataloader, self.extra_train_dataloader)):
                 if i >= self.max_dataloader_iters:
                     break 
                 
-
+                
                 prompts_ids = batch_data["input_ids"]
                 experience_data = self.get_experience_data(prompts_ids)
                 
+                # 等待加载数据
                 self.accelerator.wait_for_everyone()
                 data_buffer.append({'exp': experience_data, 'extra': batch_extra_data})
+                # if判断数据是否加载完成
                 if len(data_buffer) == self.args.mini_data_buffer_nums:
                     mini_dataset = self.get_mini_dataset(data_buffer)
                     random.shuffle(mini_dataset) 
                     data_buffer.clear()
 
+                    # ppo训练：在ppo周期中，对同一batch的数据进行多次训练
                     for ppo_epoch in range(self.args.ppo_epochs):
 
                         for j, batch_mini_data in enumerate(mini_dataset):
@@ -852,7 +906,7 @@ class PPOPeftTrainer(Trainer):
                             else:
                                 extra_inputs = None 
                         
-                        
+                            # 训练，在train_step中更新参数
                             result = self.train_step(batch_mini_data, extra_inputs, step)
                             batch_mini_data.update(result)
                             
@@ -863,10 +917,12 @@ class PPOPeftTrainer(Trainer):
                             
                             update_steps = step / self.args.gradient_accumulation_steps
                             
+                            # 达到梯度积累步，打印log
                             if step > 0 and step % self.args.gradient_accumulation_steps == 0:
                                 self.print_logs(all_logs, update_steps) 
                                 all_logs.clear()
                             
+                            # 检查是否达到模型保存步，达到就保存
                             if update_steps > 0 and (update_steps % self.args.save_steps) == 0:
                                 
                                 if self.is_world_process_zero():

@@ -160,7 +160,10 @@ class PPOEngine():
                     "summary.bias": reward_model_state_dict["v_head.summary.bias"]
                 })
             
-        
+        """oishi
+        注册缓冲区，缓冲区的数据会被加载，但是不会被更新；
+        注册成缓冲区之后，该缓冲区就成为了model的一个属性，可以使用getattr来访问
+        """
         model.register_buffer("reward_head_weight", reward_model_state_dict["v_head.summary.weight"])
         model.register_buffer("reward_head_bias", reward_model_state_dict["v_head.summary.bias"])
         model.register_buffer("critic_head_weight", reward_model_state_dict["v_head.summary.weight"])

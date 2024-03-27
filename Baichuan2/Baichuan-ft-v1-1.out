@@ -1,0 +1,102 @@
+Sender: LSF System <lsfadmin@gpu20>
+Subject: Job 604119: <Baichuan-ft-v1-1> in cluster <platform> Done
+
+Job <Baichuan-ft-v1-1> was submitted from host <login01> by user <zfyang> in cluster <platform> at Thu Mar 21 19:13:11 2024
+Job was executed on host(s) <gpu20>, in queue <gpu2>, as user <zfyang> in cluster <platform> at Fri Mar 22 14:01:21 2024
+</data/home/zfyang> was used as the home directory.
+</data/home/zfyang/home/oishi/Baichuan2> was used as the working directory.
+Started at Fri Mar 22 14:01:21 2024
+Terminated at Fri Mar 22 14:03:07 2024
+Results reported at Fri Mar 22 14:03:07 2024
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -n 1
+#BSUB -q gpu2
+#BSUB -o Baichuan-ft-v1-1.out
+#BSUB -e Baichuan-ft-v1-1.err
+#BSUB -J Baichuan-ft-v1-1
+python demo/base_ft_v1.1_demo.py 
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   94.94 sec.
+    Max Memory :                                 29446 MB
+    Average Memory :                             5794.12 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                102
+    Run time :                                   105 sec.
+    Turnaround time :                            67796 sec.
+
+The output (if any) follows:
+
+你好！我是你的粉丝，我喜欢你。” 她看着他，眼里有泪光闪烁：“你……喜欢我吗？” 他点头：“嗯……” “那你喜欢我什么啊？” “我喜欢你的善良、勇敢和坚强。”
+内容简介
+她是孤儿院里的小可怜儿，他是富家
+
+
+PS:
+
+Read file <Baichuan-ft-v1-1.err> for stderr output of this job.
+
+Sender: LSF System <lsfadmin@gpu10>
+Subject: Job 604312: <Baichuan-ft-v1-1> in cluster <platform> Done
+
+Job <Baichuan-ft-v1-1> was submitted from host <login01> by user <zfyang> in cluster <platform> at Sat Mar 23 11:00:58 2024
+Job was executed on host(s) <gpu10>, in queue <gpu2>, as user <zfyang> in cluster <platform> at Sat Mar 23 23:21:11 2024
+</data/home/zfyang> was used as the home directory.
+</data/home/zfyang/home/oishi/Baichuan2> was used as the working directory.
+Started at Sat Mar 23 23:21:11 2024
+Terminated at Sat Mar 23 23:25:30 2024
+Results reported at Sat Mar 23 23:25:30 2024
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -n 1
+#BSUB -q gpu2
+#BSUB -o Baichuan-ft-v1-1.out
+#BSUB -e Baichuan-ft-v1-1.err
+#BSUB -J Baichuan-ft-v1-1
+python demo/base_ft_v1.1_demo.py 
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   111.46 sec.
+    Max Memory :                                 29896 MB
+    Average Memory :                             8111.38 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                102
+    Run time :                                   259 sec.
+    Turnaround time :                            44672 sec.
+
+The output (if any) follows:
+
+hello! 我是你的小宝贝~
+
+
+PS:
+
+Read file <Baichuan-ft-v1-1.err> for stderr output of this job.
+

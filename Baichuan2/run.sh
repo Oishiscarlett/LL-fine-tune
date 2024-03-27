@@ -18,7 +18,7 @@ echo "#BSUB -o $JOBNAME.out" >> $JOBNAME.sh
 echo "#BSUB -e $JOBNAME.err" >> $JOBNAME.sh
 echo "#BSUB -J $JOBNAME" >> $JOBNAME.sh
 # echo "python fine-tune/run_fine_tune.py $*" >> $JOBNAME.sh
-echo "python demo/base_ft_v1-1_demo.py $*" >> $JOBNAME.sh
+echo "python scripts/base_ft_v1-1_demo.py $*" >> $JOBNAME.sh
 
 
 # 运行
