@@ -33,17 +33,16 @@ def convert_to_alpaca(original_json_objects):
     for original_dict in original_json_objects:
         # traced_tactics 非空
         if original_dict["traced_tactics"]:
-            target_dict = {
-                "instruction": "",
-                "input": "",
-                "output": ""
-            }
-
             for item in original_dict["traced_tactics"]:
+                target_dict = {
+                    "instruction": "",
+                    "input": "",
+                    "output": ""
+                }
                 target_dict["instruction"] = item["state_before"]
                 target_dict["output"] = item["tactic"]
-            
-            target_dicts.append(target_dict)
+
+                target_dicts.append(target_dict)
 
     return target_dicts
 
